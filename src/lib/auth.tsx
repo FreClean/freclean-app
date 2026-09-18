@@ -15,14 +15,11 @@ interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
-
 const ROLE_RANK: Record<Role, number> = { CUSTOMER: 0, STAFF: 1, MANAGER: 2, ADMIN: 3, OWNER: 4 };
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
 
-  // Route guards are a UX convenience only. The API re-checks every role
-  // server-side — never treat a hidden button as real access control.
   const hasRole = (role: Role) => {
     if (!session) return false;
     const maxRank = Math.max(...session.roles.map((r) => ROLE_RANK[r]));

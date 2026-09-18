@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { apiFetch } from "../lib/api.js";
+import { apiFetch } from "../api.js";
 import { useAuth } from "../lib/auth.js";
 
 export default function Login() {
@@ -18,8 +18,6 @@ export default function Login() {
         method: "POST",
         body: JSON.stringify({ email, password }),
       });
-      // roles come back embedded in the JWT in a real client; decode or
-      // fetch a /me endpoint. Simplified here for scaffolding purposes.
       setSession({ accessToken: result.accessToken, userId: result.user.id, roles: ["CUSTOMER"] });
       navigate("/");
     } catch (err: any) {
