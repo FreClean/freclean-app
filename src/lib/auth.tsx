@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState } from "react";
 
 export type Role = "CUSTOMER" | "STAFF" | "MANAGER" | "ADMIN" | "OWNER";
 
-interface Session {
+export interface Session {
   accessToken: string;
   userId: string;
   roles: Role[];
@@ -22,7 +22,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const hasRole = (role: Role) => {
     if (!session) return false;
-    const maxRank = Math.max(...session.roles.map((r) => ROLE_RANK[r]));
+    const maxRank = Math.max(...session.roles.map((r) => ROLE_RANK[r]), -1);
     return maxRank >= ROLE_RANK[role];
   };
 

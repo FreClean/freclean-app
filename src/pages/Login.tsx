@@ -1,7 +1,22 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiFetch } from "../api.js";
-import { useAuth } from "../lib/auth.js";
+import { useAuth, type Role } from "../lib/auth.js";
+
+interface LoginResponse {
+  accessToken: string;
+  user: { id: string; roles: Role[] };
+}
+
+export function isLoginResponse(value: unknown): value is LoginResponse {
+  if (!value || typeof value !== "object") return false;
+  const response = value as Partial<LoginResponse>;
+  return typeof response.accessToken === "string"
+    && response.accessToken.length > 0
+    && typeof response.user?.id === "string"
+    && Array.isArray(response.user.roles)
+    && response.user.roles.every((role) => ["CUSTOMER", "STAFF", "MANAGER", "ADMIN", "OWNER"].includes(role));
+}
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -10,18 +25,19 @@ export default function Login() {
   const { setSession } = useAuth();
   const navigate = useNavigate();
 
-  const onSubmit = async (e: React.FormEvent) => {
+  const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
     try {
-      const result = await apiFetch<{ accessToken: string; user: { id: string } }>("/auth/login", {
+      const result = await apiFetch<unknown>("/auth/login", {
         method: "POST",
         body: JSON.stringify({ email, password }),
       });
-      setSession({ accessToken: result.accessToken, userId: result.user.id, roles: ["CUSTOMER"] });
+      if (!isLoginResponse(result)) throw new Error("The authentication response was invalid.");
+      setSession({ accessToken: result.accessToken, userId: result.user.id, roles: result.user.roles });
       navigate("/");
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Unable to log in.");
     }
   };
 
